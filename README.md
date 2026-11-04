@@ -21,10 +21,11 @@ Phone (non-Jio SIM) → Mobile Hotspot → Laptop → WiFi Hotspot → STB
 ```
 
 **Why this works:**
-- STB connects to the laptop's WiFi hotspot (Windows assigns it 192.168.137.x)
-- The laptop becomes the STB's gateway AND DNS server automatically — no manual DNS config needed
-- stage1.sh intercepts the STB's TR-069 traffic at the laptop level
-- Using a non-Jio SIM on the phone ensures the STB's traffic doesn't go through Jio's network
+- STB connects to the laptop's WiFi hotspot via DHCP
+- Windows automatically assigns itself (`192.168.137.1`) as the STB's DNS server through DHCP — nothing is configured on the STB manually
+- All STB DNS queries go to the laptop, where Technitium intercepts `acs.oss.jio.com`
+- stage1.sh intercepts the STB's TR-069 connection at the laptop level
+- Using a non-Jio SIM on the phone ensures the STB cannot reach Jio's real ACS server
 
 **Steps:**
 1. Turn on **mobile hotspot** on a phone with a **non-Jio SIM** (Airtel, Vi, BSNL etc.)

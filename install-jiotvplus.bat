@@ -1,7 +1,5 @@
 @echo off
-set ADB=C:\Users\ganes\Desktop\sideload-jiostb\adb.exe
-set STB=192.168.137.211:5555
-set APKDIR=C:\Users\ganes\Desktop\jiotvplus_6010
+call "%~dp0config.bat"
 
 echo === Install JioTV+ v6.0.10 (Android TV / Play Store build) ===
 echo.

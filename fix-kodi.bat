@@ -1,6 +1,5 @@
 @echo off
-set ADB=C:\Users\ganes\Desktop\sideload-jiostb\adb.exe
-set STB=192.168.137.211:5555
+call "%~dp0config.bat"
 
 echo === Kodi EPG Fix ===
 echo.
@@ -13,8 +12,11 @@ echo [1/3] Connecting to STB...
 )
 echo OK
 
+:: Extract IP from STB variable (strips :5555 port)
+for /f "tokens=1 delims=:" %%i in ("%STB%") do set STB_IP=%%i
+
 echo [2/3] Checking if Kodi is responding via JSONRPC...
-curl -s --max-time 3 -X POST http://192.168.137.211:8080/jsonrpc ^
+curl -s --max-time 3 -X POST http://%STB_IP%:8080/jsonrpc ^
     -H "Content-Type: application/json" ^
     -d "{\"jsonrpc\":\"2.0\",\"method\":\"JSONRPC.Ping\",\"id\":1}" ^
     | findstr /i "pong" >nul 2>&1
