@@ -10,33 +10,43 @@ This is a **two-phase process**:
 
 ## Phase 1 — Enable ADB on the STB
 
-> ⚠️ Jio locks down the STB. Developer Options cannot be enabled the standard Android way (tapping Build Number). ADB must be unlocked via a TR-069/CWMP exploit using a custom DNS server and Docker.
+> ⚠️ Jio locks down the STB. Developer Options cannot be enabled the standard Android way (tapping Build Number). ADB must be unlocked via a TR-069/CWMP exploit.
 
-### PC Requirements for Phase 1
+### Network Setup — The Method That Works
+
+> This is the key step. The official guide suggests modifying DNS on the router/STB, but that is unreliable. The confirmed working method uses a **mobile hotspot chain**:
+
+```
+Phone (non-Jio SIM) → Mobile Hotspot → Laptop → WiFi Hotspot → STB
+```
+
+**Why this works:**
+- STB connects to the laptop's WiFi hotspot (Windows assigns it 192.168.137.x)
+- The laptop becomes the STB's gateway AND DNS server automatically — no manual DNS config needed
+- stage1.sh intercepts the STB's TR-069 traffic at the laptop level
+- Using a non-Jio SIM on the phone ensures the STB's traffic doesn't go through Jio's network
+
+**Steps:**
+1. Turn on **mobile hotspot** on a phone with a **non-Jio SIM** (Airtel, Vi, BSNL etc.)
+2. Connect your **laptop to that phone hotspot**
+3. Turn on **Windows WiFi Hotspot** on the laptop (Settings → Mobile Hotspot)
+4. Connect the **STB to the laptop's WiFi hotspot**
+5. STB will get an IP in the `192.168.137.x` range — confirm with `ipconfig` on laptop
+
+### PC Requirements
 
 | Tool | Purpose | Download |
 |------|---------|----------|
 | **Docker Desktop** | Hosts local GenieACS/TLS backend | [docs.docker.com](https://docs.docker.com/desktop/setup/install/windows-install/) |
-| **Python 3** | Runs proxy and diagnostic scripts (add to PATH) | [python.org](https://www.python.org/downloads/) |
-| **Technitium DNS** | Overrides local DNS to intercept STB traffic | [technitium.com](https://technitium.com/dns/) |
+| **Python 3** | Runs proxy scripts (add to PATH during install) | [python.org](https://www.python.org/downloads/) |
+| **Technitium DNS** | Intercepts STB's DNS queries on the laptop | [technitium.com](https://technitium.com/dns/) |
 | **Git for Windows** | Bash terminal to run `.sh` scripts | [gitforwindows.org](https://gitforwindows.org/) |
-| **USB pendrive** | Needed for the USB bug to access hidden STB settings |  |
 
-### Real Experience — What to Expect
+> No USB pendrive needed. No router WAN cable changes. No manual DNS config on STB.
 
-> This process took **~6 hours** on first attempt. Do not start unless you have enough time and patience.
-> Once ADB is connected, everything in Phase 2 (debloat, JioTV+, Kodi) is straightforward.
+### Run stage1.sh
 
-Key things that are not obvious:
-- **Git Bash is required.** The `.sh` scripts will not run in Command Prompt or PowerShell. Open Git Bash inside the `sideload-jiostb` folder.
-- **The ADB prompt does not appear immediately.** It only appears on the STB screen **after** `stage1.sh` completes AND the STB does a cold reboot (unplug from wall, not standby).
-- **Windows Firewall must be turned off** during the process. The STB needs to reach your PC on ports 53 (DNS), 8443 and 9443 (TLS proxy).
-- **The STB only contacts the ACS on boot.** If nothing happens after `stage1.sh`, cold power cycle the STB (unplug from wall, wait 5 seconds, plug back in).
-- Once the ADB prompt appears on TV — check **"Always allow from this computer"** → OK → then run `adb connect` again.
-
-### Git Bash Commands
-
-Open Git Bash inside the `sideload-jiostb` folder and run:
+Once STB is connected to the laptop hotspot, open Git Bash inside the `sideload-jiostb` folder:
 
 ```bash
 cd ~/Desktop/sideload-jiostb
@@ -50,50 +60,16 @@ The script checks all prerequisites automatically:
 What you see when it's working:
 - `[1/6] Checking prerequisites...` — Python, ADB binary, GenieACS NBI, TLS ports all show ✓
 - `[2/6] Finding device in GenieACS...` — your STB serial number appears (e.g. `JMSD200A-...`)
-- Enter your device number when prompted, then cold power cycle the STB
+- Enter your device number when prompted
+- **Cold power cycle the STB** (unplug from wall, wait 5 seconds, plug back in)
+- ADB permission prompt appears on the TV — check **"Always allow from this computer"** → OK
+- Run `adb connect 192.168.137.<STB_IP>:5555` to confirm
 
-### DNS Not Working? (Troubleshooting)
+> Git Bash is required. These scripts will not run in Command Prompt or PowerShell.
 
-The official guide only documents Technitium DNS and has no alternative. If stage1.sh shows GenieACS NBI or TLS as ✗, or the STB never shows up after multiple cold reboots, check these in order:
+### Full Step-by-Step
 
-**1. Firewall — most common reason DNS fails**
-- Fully disable Windows Defender Firewall for both Private and Public (not just turn off notifications)
-- Press `Win+R` → `firewall.cpl` → Turn Windows Defender Firewall off for both
-- Third-party antivirus may also block port 53 — disable it temporarily
-
-**2. WAN cable must be unplugged from router**
-- Unplug the incoming fiber/WAN cable from your router during setup
-- With internet active, the STB uses Jio's real DNS and ignores your PC's DNS
-
-**3. STB DNS must point to your PC (USB bug method)**
-- Plug a USB drive into the STB
-- Go to **My Music → Settings → Eject USB → Internal Storage → Apps → Settings (gear icon)**
-- **Network → your WiFi → Advanced IP Settings**
-- Switch from DHCP to Static — if fields clear, note DHCP values first and re-enter them
-- Set **DNS 1** to your PC's IP address (from `ipconfig` → Wireless LAN IPv4)
-- DNS 2 can stay as is
-
-**4. Check your PC IP is correct in Technitium**
-- Run `ipconfig` again — if your PC IP changed, update the `acs.oss` A record in Technitium (Zones → jio.com → acs.oss)
-
-**5. Run diagnostics**
-```bash
-python doctor.py --quick
-python doctor.py --simulate
-```
-Or via stage1.sh:
-```bash
-./stage1.sh --doctor
-```
-
-**6. STB not appearing in GenieACS**
-- The STB only contacts the ACS at cold boot (not standby)
-- Fully unplug from wall power → wait 5 seconds → plug back in
-- Run `./stage1.sh` again and type `wait` when prompted — it will listen for the STB to check in
-
-### Follow the sideload-jiostb guide
-
-The full step-by-step is documented in the **sideload-jiostb** toolkit by u/ilikechocopies:  
+The complete stage1.sh process is documented in the **sideload-jiostb** toolkit:  
 👉 **https://github.com/ilikechocopies/sideload-jiostb**
 
 That toolkit handles:
