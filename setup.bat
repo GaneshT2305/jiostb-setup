@@ -28,8 +28,13 @@ echo [5/6] Disabling Jio ADC embedded (background data collector)...
 %ADB% -s %STB% shell pm disable-user --user 0 com.jio.adc.embedded
 echo OK
 
-echo [6/6] Disabling Jio default launcher (Patchwall/JioEnv)...
+echo [6/7] Disabling Jio default launcher (Patchwall/JioEnv)...
 %ADB% -s %STB% shell pm disable-user --user 0 com.jio.android.jiolauncher
+echo OK
+
+echo [7/7] Enabling dark mode permanently...
+%ADB% -s %STB% shell cmd uimode night yes
+%ADB% -s %STB% shell settings put secure ui_night_mode 2
 echo OK
 
 echo.
