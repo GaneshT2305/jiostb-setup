@@ -165,17 +165,6 @@ After install, open it on the STB and:
 
 ---
 
-## Step 5 — Fix Kodi EPG (when needed)
-
-If Kodi's EPG/guide stops loading:
-
-```
-fix-kodi.bat
-```
-
-Checks Kodi JSONRPC on port 8080. If not responding, clears app data and restarts.
-
----
 
 ## ADB Quick Reference
 
