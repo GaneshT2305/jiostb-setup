@@ -111,13 +111,14 @@ If it fails: check STB IP, make sure ADB over Network is enabled on the STB (it 
 setup.bat
 ```
 
-| Step | Action | Package |
+| Step | Action | Package / Command |
 |------|--------|---------|
 | 1 | Enable Jio SSO STB (login for JioTV+ v2.x) | `com.media.jio.sso.stb` |
 | 2 | Set Monet as default home launcher | `com.klevico.monet` |
 | 3 | Disable JioStore (stops auto app downloads/updates permanently) | `com.jio.store` |
 | 4 | Disable Jio background data collector | `com.jio.adc.embedded` |
 | 5 | Disable Jio Patchwall launcher | `com.jio.android.jiolauncher` |
+| 6 | Enable dark mode permanently (Jio firmware updates keep removing it) | `cmd uimode night yes` |
 
 > Note: `com.jio.httpupdate`, `com.jio.usbupdate`, and `com.jio.stb.rcuupdate` are already disabled by `stage1.sh`.
 
@@ -148,7 +149,23 @@ install-jiotvplus.bat
 
 ---
 
-## Step 4 — Fix Kodi EPG (when needed)
+## Step 4 — Install Aurora Store (optional)
+
+Aurora Store is a Google Play Store client — it has access to all Play Store apps. Install it once via ADB:
+
+```batch
+adb -s <STB_IP>:5555 install "C:\path\to\sideload-jiostb\AuroraStore-4.8.4.apk"
+```
+
+After install, open it on the STB and:
+1. Choose **Anonymous** (no Google account needed)
+2. Go to **Settings → Interface → Enable TV Mode** for a remote-friendly layout
+
+> Aurora Store is already bundled inside the `sideload-jiostb` folder as `AuroraStore-4.8.4.apk`.
+
+---
+
+## Step 5 — Fix Kodi EPG (when needed)
 
 If Kodi's EPG/guide stops loading:
 
