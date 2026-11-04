@@ -52,6 +52,45 @@ What you see when it's working:
 - `[2/6] Finding device in GenieACS...` — your STB serial number appears (e.g. `JMSD200A-...`)
 - Enter your device number when prompted, then cold power cycle the STB
 
+### DNS Not Working? (Troubleshooting)
+
+The official guide only documents Technitium DNS and has no alternative. If stage1.sh shows GenieACS NBI or TLS as ✗, or the STB never shows up after multiple cold reboots, check these in order:
+
+**1. Firewall — most common reason DNS fails**
+- Fully disable Windows Defender Firewall for both Private and Public (not just turn off notifications)
+- Press `Win+R` → `firewall.cpl` → Turn Windows Defender Firewall off for both
+- Third-party antivirus may also block port 53 — disable it temporarily
+
+**2. WAN cable must be unplugged from router**
+- Unplug the incoming fiber/WAN cable from your router during setup
+- With internet active, the STB uses Jio's real DNS and ignores your PC's DNS
+
+**3. STB DNS must point to your PC (USB bug method)**
+- Plug a USB drive into the STB
+- Go to **My Music → Settings → Eject USB → Internal Storage → Apps → Settings (gear icon)**
+- **Network → your WiFi → Advanced IP Settings**
+- Switch from DHCP to Static — if fields clear, note DHCP values first and re-enter them
+- Set **DNS 1** to your PC's IP address (from `ipconfig` → Wireless LAN IPv4)
+- DNS 2 can stay as is
+
+**4. Check your PC IP is correct in Technitium**
+- Run `ipconfig` again — if your PC IP changed, update the `acs.oss` A record in Technitium (Zones → jio.com → acs.oss)
+
+**5. Run diagnostics**
+```bash
+python doctor.py --quick
+python doctor.py --simulate
+```
+Or via stage1.sh:
+```bash
+./stage1.sh --doctor
+```
+
+**6. STB not appearing in GenieACS**
+- The STB only contacts the ACS at cold boot (not standby)
+- Fully unplug from wall power → wait 5 seconds → plug back in
+- Run `./stage1.sh` again and type `wait` when prompted — it will listen for the STB to check in
+
 ### Follow the sideload-jiostb guide
 
 The full step-by-step is documented in the **sideload-jiostb** toolkit by u/ilikechocopies:  
