@@ -22,6 +22,17 @@ This is a **two-phase process**:
 | **Git for Windows** | Bash terminal to run `.sh` scripts | [gitforwindows.org](https://gitforwindows.org/) |
 | **USB pendrive** | Needed for the USB bug to access hidden STB settings |  |
 
+### Real Experience — What to Expect
+
+> This process took **~6 hours** on first attempt. Do not start unless you have enough time and patience.
+
+Key things that are not obvious:
+- The ADB permission prompt does **not** appear on the STB right away. It only appears **after** `stage1.sh` runs successfully in Git Bash AND the STB reboots (cold power cycle — unplug from wall).
+- Git Bash is required. The `.sh` scripts will not run in Command Prompt or PowerShell.
+- The STB must be on the same network as your PC and must be able to reach your PC's IP on ports 53 (DNS), 8443 and 9443 (TLS proxy). Windows Firewall must be temporarily disabled.
+- The STB only contacts the custom ACS server on **boot**. If nothing happens, cold power cycle (unplug the STB from wall, wait 5 seconds, plug back in).
+- Once the ADB prompt appears on the STB screen, check **"Always allow from this computer"** and click OK. Then run `adb connect <STB_IP>:5555` again.
+
 ### Follow the sideload-jiostb guide
 
 The ADB exploit is documented in the **sideload-jiostb** toolkit by u/ilikechocopies:  
@@ -35,7 +46,7 @@ That toolkit handles:
 
 **Supported hardware:** JMSC200Av2, JMSB200A, JHSC200 (JioOS 2.0)
 
-Once stage1.sh succeeds, ADB is active at `<STB_IP>:5555` and you can connect from your PC.
+Once stage1.sh succeeds and the STB reboots, ADB is active at `<STB_IP>:5555` and you can proceed to Phase 2.
 
 ---
 
