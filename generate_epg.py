@@ -3,9 +3,9 @@ Merged Indian IPTV EPG generator: JioTV + Zee5 + Tata Play
 Outputs XMLTV file with standard xmltv_ids where available for best channel matching.
 """
 import urllib.request, urllib.parse, json, datetime, xml.etree.ElementTree as ET
-import threading, time, sys, re, os
+import threading, time, sys, re, os, gzip
 
-OUT_XML = sys.argv[1] if len(sys.argv) > 1 else str(os.path.join(os.path.dirname(os.path.abspath(__file__)), "india_epg.xml"))
+OUT_XML = sys.argv[1] if len(sys.argv) > 1 else str(os.path.join(os.path.dirname(os.path.abspath(__file__)), "india_epg.xml.gz"))
 today_ist = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
 today_utc = datetime.datetime.now(datetime.timezone.utc)
 
@@ -267,15 +267,20 @@ for ch in zee5_channels:
 
 lines.append("</tv>")
 
-with open(OUT_XML, "w", encoding="utf-8") as f:
-    f.write("\n".join(lines))
+content = "\n".join(lines).encode("utf-8")
+if OUT_XML.endswith(".gz"):
+    with gzip.open(OUT_XML, "wb") as f:
+        f.write(content)
+else:
+    with open(OUT_XML, "wb") as f:
+        f.write(content)
 
 size_kb = os.path.getsize(OUT_XML)//1024
 total_channels = len(jio_channels) + len(zee5_channels)
 print(f"\nDone! {OUT_XML}")
 print(f"  Channels: {len(jio_channels)} JioTV + {len(zee5_channels)} Zee5 = {total_channels} total")
 print(f"  Programmes: {prog_count:,}")
-print(f"  File size: {size_kb:,} KB ({size_kb//1024} MB)")
+print(f"  File size: {size_kb:,} KB (compressed)")
 print(f"\nChannel ID format:")
 print(f"  - Has xmltv_id (Zee channels, major Indian): uses standard xmltv_id e.g. 'ZeeTV.in@SD'")
 print(f"  - No xmltv_id: uses 'jio_123' or 'zee5_xxx'")
