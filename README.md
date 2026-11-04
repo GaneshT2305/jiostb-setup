@@ -113,10 +113,13 @@ setup.bat
 
 | Step | Action | Package |
 |------|--------|---------|
-| 1 | Enable Jio SSO STB for JioTV+ v2.x login | `com.media.jio.sso.stb` |
+| 1 | Enable Jio SSO STB (login for JioTV+ v2.x) | `com.media.jio.sso.stb` |
 | 2 | Set Monet as default home launcher | `com.klevico.monet` |
-| 3 | Disable Jio background data collector | `com.jio.adc.embedded` |
-| 4 | Disable Jio Patchwall launcher | `com.jio.android.jiolauncher` |
+| 3 | Disable JioStore (stops auto app downloads/updates permanently) | `com.jio.store` |
+| 4 | Disable Jio background data collector | `com.jio.adc.embedded` |
+| 5 | Disable Jio Patchwall launcher | `com.jio.android.jiolauncher` |
+
+> Note: `com.jio.httpupdate`, `com.jio.usbupdate`, and `com.jio.stb.rcuupdate` are already disabled by `stage1.sh`.
 
 Reboot STB after for changes to take effect.
 
