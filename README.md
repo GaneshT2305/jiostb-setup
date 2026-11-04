@@ -1,162 +1,136 @@
 # Jio AirFiber STB — Full Modification Guide
 
-Complete guide to debloat, customize, and extend the Jio AirFiber Set-Top Box (Android TV) using ADB from a Windows PC.
+Complete guide to unlock, debloat, and extend the Jio AirFiber Set-Top Box (Android TV).
 
-**No root required. No Docker. No server.**
-
----
-
-## Overview
-
-```
-PC Setup → STB Setup → Connect ADB → Run Scripts → Done
-```
+This is a **two-phase process**:
+1. **Enable ADB** on the STB (requires Docker, DNS exploit via TR-069)
+2. **Post-ADB setup** — install custom launcher, upgrade JioTV+, install apps
 
 ---
 
-## Step 1 — PC Requirements
+## Phase 1 — Enable ADB on the STB
 
-Install these on your Windows PC before anything else.
+> ⚠️ Jio locks down the STB. Developer Options cannot be enabled the standard Android way (tapping Build Number). ADB must be unlocked via a TR-069/CWMP exploit using a custom DNS server and Docker.
 
-### 1.1 ADB (Android Debug Bridge)
+### PC Requirements for Phase 1
 
-1. Download **Android Platform Tools** from:  
-   https://developer.android.com/tools/releases/platform-tools
-2. Extract the zip to a folder, e.g. `C:\platform-tools\`
-3. Note the full path to `adb.exe` — you will add it to `config.bat`
+| Tool | Purpose | Download |
+|------|---------|----------|
+| **Docker Desktop** | Hosts local GenieACS/TLS backend | [docs.docker.com](https://docs.docker.com/desktop/setup/install/windows-install/) |
+| **Python 3** | Runs proxy and diagnostic scripts (add to PATH) | [python.org](https://www.python.org/downloads/) |
+| **Technitium DNS** | Overrides local DNS to intercept STB traffic | [technitium.com](https://technitium.com/dns/) |
+| **Git for Windows** | Bash terminal to run `.sh` scripts | [gitforwindows.org](https://gitforwindows.org/) |
+| **USB pendrive** | Needed for the USB bug to access hidden STB settings |  |
 
-### 1.2 curl
+### Follow the sideload-jiostb guide
 
-Already built into Windows 10 and Windows 11. No install needed.  
-Verify: open Command Prompt and type `curl --version`
+The ADB exploit is documented in the **sideload-jiostb** toolkit by u/ilikechocopies:  
+👉 **https://github.com/ilikechocopies/sideload-jiostb** (check for exact URL — also bundled in the `sideload-jiostb` folder if you have it)
 
-### 1.3 This Repo
+That toolkit handles:
+- Intercepting the STB's TR-069 CWMP check-in via Docker + Technitium DNS
+- Running `stage1.sh` to enable network ADB (expires 2037)
+- Installing Monet Launcher and Shevery
+- Disabling startup ads and OTA auto-updates
 
-Download or clone this repo to your PC:
+**Supported hardware:** JMSC200Av2, JMSB200A, JHSC200 (JioOS 2.0)
 
-```
-git clone https://github.com/GaneshT2305/jiostb-setup
-```
+Once stage1.sh succeeds, ADB is active at `<STB_IP>:5555` and you can connect from your PC.
 
-Or download as ZIP from GitHub and extract.
+---
 
-### 1.4 Edit config.bat
+## Phase 2 — Post-ADB Setup
 
-Open `config.bat` in Notepad and fill in your values:
+After ADB is enabled, run the scripts in this repo to finish the setup.
+
+### PC Requirements for Phase 2
+
+| Requirement | Notes |
+|-------------|-------|
+| ADB (bundled in sideload-jiostb) | Already included as `adb.exe` in the toolkit folder |
+| curl | Built into Windows 10/11 — no install needed |
+| STB and PC on the same network | ADB over WiFi — STB connects to your router or PC hotspot |
+
+### Edit config.bat
+
+Before running any script, open `config.bat` and fill in your values:
 
 ```batch
-set ADB=C:\platform-tools\adb.exe    :: path to your adb.exe
-set STB=192.168.x.x:5555             :: your STB IP (find it in Step 2)
-set APKDIR=C:\jiotvplus_6010         :: only needed if installing JioTV+ v6
+set ADB=C:\path\to\sideload-jiostb\adb.exe    :: path to adb.exe
+set STB=192.168.x.x:5555                        :: your STB IP address
+set APKDIR=C:\path\to\jiotvplus_6010            :: only for install-jiotvplus.bat
 ```
 
 ---
 
-## Step 2 — STB Setup (one-time)
-
-Do these on the STB itself before connecting ADB.
-
-### 2.1 Enable Developer Options
-
-1. On STB: go to **Settings → About**
-2. Find **Build Number** and click it **7 times**
-3. Developer Options will now appear in Settings
-
-### 2.2 Enable ADB over Network
-
-1. Go to **Settings → Developer Options**
-2. Turn on **ADB over Network** (or USB Debugging)
-3. Note your STB IP: **Settings → Network → IP address**
-4. Add it to `config.bat` as `set STB=<IP>:5555`
-
----
-
-## Step 3 — Connect ADB
-
-Run from your PC:
+## Step 1 — Connect ADB
 
 ```
 connect.bat
 ```
 
-You should see: `Connected to 192.168.x.x:5555`
+STB and PC must be on the same network (same WiFi router, or STB connected to PC hotspot).
 
-If it fails:
-- Make sure PC and STB are on the same WiFi network
-- Double-check the IP in `config.bat`
-- Toggle ADB over Network off and on again on the STB
+If it fails: check STB IP, make sure ADB over Network is enabled on the STB (it stays on after stage1.sh).
 
 ---
 
-## Step 4 — Apply STB Modifications
-
-Run once after a fresh STB or factory reset:
+## Step 2 — Apply STB Modifications (run once)
 
 ```
 setup.bat
 ```
 
-| What it does | Package |
-|---|---|
-| Enable Jio SSO STB (login for JioTV+ v2.x) | `com.media.jio.sso.stb` |
-| Set Monet as home launcher | `com.klevico.monet` |
-| Disable Jio background data collector | `com.jio.adc.embedded` |
-| Disable Jio Patchwall launcher | `com.jio.android.jiolauncher` |
+| Step | Action | Package |
+|------|--------|---------|
+| 1 | Enable Jio SSO STB for JioTV+ v2.x login | `com.media.jio.sso.stb` |
+| 2 | Set Monet as default home launcher | `com.klevico.monet` |
+| 3 | Disable Jio background data collector | `com.jio.adc.embedded` |
+| 4 | Disable Jio Patchwall launcher | `com.jio.android.jiolauncher` |
 
-Reboot STB after:
-
-```batch
-:: Paste in Command Prompt after editing paths
-C:\platform-tools\adb.exe -s 192.168.x.x:5555 reboot
-```
+Reboot STB after for changes to take effect.
 
 ---
 
-## Step 5 — Upgrade JioTV+ to v6 (optional)
+## Step 3 — Upgrade JioTV+ to v6 (optional)
 
-The STB ships with JioTV+ v2.6.7. The Android TV / Play Store build (v6) has a better UI and more features. Jio stopped publishing v6 updates to STB via JioStore, so this is a manual install.
+The STB ships with JioTV+ v2.6.7. The Android TV / Play Store build (v6.0.10) has a better UI. Jio stopped publishing v6 updates to the STB via JioStore, so this is a manual install.
 
-### 5.1 Download APK splits
+### Get the APK splits
 
-1. Go to **APKMirror** and download:  
-   `JioTV+ 6.0.10` → choose **APKS** bundle (not APK)
-2. Rename the downloaded `.apkm` file to `.zip`
-3. Extract the zip — you will get several `.apk` files
+1. Go to **APKMirror**, search for **JioTV+ 6.0.10**
+2. Download the **APKS** bundle (not the APK)
+3. Rename `.apkm` → `.zip` and extract it
 4. Set `APKDIR` in `config.bat` to that extracted folder
 
-Required files inside:
+Required files (STB is 32-bit ARM / `armeabi-v7a`):
 - `base.apk`
-- `split_config.armeabi_v7a.apk` ← STB is 32-bit ARM, use this one
+- `split_config.armeabi_v7a.apk`
 - `split_config.xhdpi.apk`
 - `split_config.en.apk`
-
-### 5.2 Install
 
 ```
 install-jiotvplus.bat
 ```
 
-Installation takes 30–60 seconds. JioTV+ will launch automatically when done.
-
 ---
 
-## Step 6 — Fix Kodi EPG (when needed)
+## Step 4 — Fix Kodi EPG (when needed)
 
-If Kodi's EPG/guide stops loading or Kodi becomes unresponsive:
+If Kodi's EPG/guide stops loading:
 
 ```
 fix-kodi.bat
 ```
 
-This checks if Kodi is alive via its JSONRPC API. If not responding, it clears app data and restarts Kodi.
+Checks Kodi JSONRPC on port 8080. If not responding, clears app data and restarts.
 
 ---
 
 ## ADB Quick Reference
 
 ```batch
-:: Set these for your setup
-set ADB=C:\platform-tools\adb.exe
+set ADB=C:\path\to\adb.exe
 set STB=192.168.x.x:5555
 
 :: Connect
@@ -172,7 +146,10 @@ set STB=192.168.x.x:5555
 %ADB% -s %STB% shell pm enable <package.name>
 %ADB% -s %STB% shell pm disable-user --user 0 <package.name>
 
-:: List all installed packages
+:: Install any APK
+%ADB% -s %STB% install "C:\path\to\app.apk"
+
+:: List all packages
 %ADB% -s %STB% shell pm list packages
 
 :: Reboot STB
@@ -192,10 +169,10 @@ set STB=192.168.x.x:5555
 
 | Topic | Detail |
 |-------|--------|
-| Root required? | No |
-| Works over WiFi? | Yes — no USB cable needed |
+| Developer Options | NOT accessible via standard Android method on Jio STB — use stage1.sh |
 | Patchwall | Jio STB home screen — aggregates from JioTV+ and OTTs, does not own content |
-| JioStore | Handles STB app updates (not OTA). Jio stopped publishing JioTV+ v6 to JioStore for STB |
+| JioStore | Handles app updates on STB (not OTA). Jio stopped publishing JioTV+ v6 via JioStore |
 | v6 vs v2 | Same package name. v6 = Android TV / Play Store build. v2.6.7 = factory STB build |
 | Black screencap | Expected during live TV — HDCP/DRM secure surface |
 | SSO STB app | `com.media.jio.sso.stb` needed for v2.x login only. v6 handles auth internally |
+| Package installer | Jio disabled the stock APK installer UI — always install via ADB |
