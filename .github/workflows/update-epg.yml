@@ -21,21 +21,20 @@ jobs:
           python-version: '3.11'
 
       - name: Generate EPG (JioTV + Zee5)
-        run: python generate_epg.py india_epg.xml
+        run: python generate_epg.py india_epg.xml.gz
         timeout-minutes: 15
 
       - name: Check output
         run: |
-          ls -lh india_epg.xml
-          echo "Channels + programmes in file:"
-          grep -c '<channel ' india_epg.xml || true
-          grep -c '<programme ' india_epg.xml || true
+          ls -lh india_epg.xml.gz
+          echo "Compressed size:"
+          du -h india_epg.xml.gz
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
-          include_files: india_epg.xml
+          include_files: india_epg.xml.gz
           keep_files: true
           commit_message: 'EPG update ${{ github.run_id }}'

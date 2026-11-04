@@ -15,7 +15,7 @@ if errorlevel 1 (
 
 echo.
 echo Pushing EPG to STB...
-%ADB% -s %STB% push "%~dp0india_epg.xml" /sdcard/india_epg.xml
+%ADB% -s %STB% push "%~dp0india_epg.xml.gz" /sdcard/india_epg.xml.gz
 if errorlevel 1 (
     echo ERROR: Push failed. Is STB connected?
     echo Run: %ADB% connect %STB%
@@ -27,6 +27,6 @@ echo.
 echo Done! EPG updated on STB.
 echo.
 echo In OTT Navigator, set EPG source to:
-echo   file:///sdcard/india_epg.xml
+echo   file:///sdcard/india_epg.xml.gz
 echo.
 pause
