@@ -25,18 +25,37 @@ This is a **two-phase process**:
 ### Real Experience — What to Expect
 
 > This process took **~6 hours** on first attempt. Do not start unless you have enough time and patience.
+> Once ADB is connected, everything in Phase 2 (debloat, JioTV+, Kodi) is straightforward.
 
 Key things that are not obvious:
-- The ADB permission prompt does **not** appear on the STB right away. It only appears **after** `stage1.sh` runs successfully in Git Bash AND the STB reboots (cold power cycle — unplug from wall).
-- Git Bash is required. The `.sh` scripts will not run in Command Prompt or PowerShell.
-- The STB must be on the same network as your PC and must be able to reach your PC's IP on ports 53 (DNS), 8443 and 9443 (TLS proxy). Windows Firewall must be temporarily disabled.
-- The STB only contacts the custom ACS server on **boot**. If nothing happens, cold power cycle (unplug the STB from wall, wait 5 seconds, plug back in).
-- Once the ADB prompt appears on the STB screen, check **"Always allow from this computer"** and click OK. Then run `adb connect <STB_IP>:5555` again.
+- **Git Bash is required.** The `.sh` scripts will not run in Command Prompt or PowerShell. Open Git Bash inside the `sideload-jiostb` folder.
+- **The ADB prompt does not appear immediately.** It only appears on the STB screen **after** `stage1.sh` completes AND the STB does a cold reboot (unplug from wall, not standby).
+- **Windows Firewall must be turned off** during the process. The STB needs to reach your PC on ports 53 (DNS), 8443 and 9443 (TLS proxy).
+- **The STB only contacts the ACS on boot.** If nothing happens after `stage1.sh`, cold power cycle the STB (unplug from wall, wait 5 seconds, plug back in).
+- Once the ADB prompt appears on TV — check **"Always allow from this computer"** → OK → then run `adb connect` again.
+
+### Git Bash Commands
+
+Open Git Bash inside the `sideload-jiostb` folder and run:
+
+```bash
+cd ~/Desktop/sideload-jiostb
+./stage1.sh
+```
+
+The script checks all prerequisites automatically:
+
+![stage1.sh running in Git Bash](images/stage1-gitbash.png)
+
+What you see when it's working:
+- `[1/6] Checking prerequisites...` — Python, ADB binary, GenieACS NBI, TLS ports all show ✓
+- `[2/6] Finding device in GenieACS...` — your STB serial number appears (e.g. `JMSD200A-...`)
+- Enter your device number when prompted, then cold power cycle the STB
 
 ### Follow the sideload-jiostb guide
 
-The ADB exploit is documented in the **sideload-jiostb** toolkit by u/ilikechocopies:  
-👉 **https://github.com/ilikechocopies/sideload-jiostb** (check for exact URL — also bundled in the `sideload-jiostb` folder if you have it)
+The full step-by-step is documented in the **sideload-jiostb** toolkit by u/ilikechocopies:  
+👉 **https://github.com/ilikechocopies/sideload-jiostb**
 
 That toolkit handles:
 - Intercepting the STB's TR-069 CWMP check-in via Docker + Technitium DNS
@@ -46,7 +65,7 @@ That toolkit handles:
 
 **Supported hardware:** JMSC200Av2, JMSB200A, JHSC200 (JioOS 2.0)
 
-Once stage1.sh succeeds and the STB reboots, ADB is active at `<STB_IP>:5555` and you can proceed to Phase 2.
+Once stage1.sh succeeds and the STB reboots, ADB is active at `<STB_IP>:5555`. Proceed to Phase 2.
 
 ---
 
