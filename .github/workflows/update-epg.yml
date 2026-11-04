@@ -1,0 +1,41 @@
+name: Update EPG
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'   # every 12 hours (00:00 and 12:00 UTC = 05:30 and 17:30 IST)
+  workflow_dispatch:          # manual trigger from GitHub Actions tab
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-epg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate EPG (JioTV + Zee5)
+        run: python generate_epg.py india_epg.xml
+        timeout-minutes: 15
+
+      - name: Check output
+        run: |
+          ls -lh india_epg.xml
+          echo "Channels + programmes in file:"
+          grep -c '<channel ' india_epg.xml || true
+          grep -c '<programme ' india_epg.xml || true
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          include_files: india_epg.xml
+          keep_files: true
+          commit_message: 'EPG update ${{ github.run_id }}'
