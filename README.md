@@ -97,6 +97,14 @@ After ADB is enabled, run the scripts in this repo to finish the setup.
 | curl | Built into Windows 10/11 — no install needed |
 | STB and PC on the same network | ADB over WiFi — STB connects to your router or PC hotspot |
 
+### Auto-detect STB IP (optional)
+
+If you don't know the STB's IP address, run this first — it scans the `192.168.137.x` subnet, finds the STB, and writes the IP into `config.bat` automatically:
+
+```
+detect-stb.bat
+```
+
 ### Edit config.bat
 
 Before running any script, open `config.bat` and fill in your values:
@@ -106,6 +114,18 @@ set ADB=C:\path\to\sideload-jiostb\adb.exe    :: path to adb.exe
 set STB=192.168.x.x:5555                        :: your STB IP address
 set APKDIR=C:\path\to\jiotvplus_6010            :: only for install-jiotvplus.bat
 ```
+
+---
+
+### One-shot: Run Everything at Once
+
+If config.bat is already set up (or after running `detect-stb.bat`), run all steps in one go:
+
+```
+run-all.bat
+```
+
+Runs: connect → STB modifications → JioTV+ v6 (if APKDIR set) → Aurora Store install.
 
 ---
 
